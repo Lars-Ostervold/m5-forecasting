@@ -15,7 +15,7 @@ st.set_page_config(
 
 # Load data and models
 df, rfm = load_data()
-_, encoder_model, kmeans_model, scaler = load_models()
+_, customer_embeddings, kmeans_model, scaler = load_models()
 
 # Header
 st.title("👥 Customer Segmentation Analysis")
@@ -24,38 +24,38 @@ st.markdown("Interactive analysis of customer segments using RFM (Recency, Frequ
 # Add encoder predictions to RFM data
 @st.cache_data
 def get_customer_segments():
-    # Prepare RFM data
-    rfm_features = rfm[['Recency', 'Frequency', 'MonetaryValue']]
+    from utils import get_customer_segment
     
-    # Scale the features
-    rfm_scaled = scaler.transform(rfm_features)
+    # Get cluster assignments
+    clusters = get_customer_segment(customer_embeddings, kmeans_model, scaler, rfm)
     
-    # Encode features
-    encoded_features = encoder_model.predict(rfm_scaled)
-    
-    # Cluster customers
+    # Add to RFM data
     rfm_with_clusters = rfm.copy()
-    rfm_with_clusters['Cluster'] = kmeans_model.predict(encoded_features)
+    rfm_with_clusters['Cluster'] = clusters
     
-    # Map cluster numbers to segment names
+    # Map clusters to segment names based on RFM values
     segment_names = {
-        0: "Champions",
-        1: "Loyal Customers",
-        2: "Potential Loyalists",
+        0: "Potential Loyalists",
+        1: "Champions", 
+        2: "Champions",
         3: "At Risk/Lost"
     }
+    
     # Add segment names
     rfm_with_clusters['Segment'] = rfm_with_clusters['Cluster'].map(segment_names)
     
-    # Create segment summary
+    # Segment summary
     segment_summary = rfm_with_clusters.groupby('Segment').agg({
         'Recency': 'mean',
         'Frequency': 'mean',
-        'MonetaryValue': 'mean'
+        'MonetaryValue': 'mean',
     }).reset_index()
     
-    segment_summary['Count'] = rfm_with_clusters['Segment'].value_counts().values
-    segment_summary['Percentage'] = 100 * segment_summary['Count'] / segment_summary['Count'].sum()
+    segment_summary['Count'] = rfm_with_clusters['Segment'].value_counts().reindex(segment_summary['Segment']).values
+    
+    # Get the 2D encoded features for visualization
+    encoded_features = np.array([customer_embeddings[cid] for cid in rfm['CustomerID']])
+    
     return rfm_with_clusters, segment_summary, encoded_features
 
 rfm_with_clusters, segment_summary, encoded_features = get_customer_segments()

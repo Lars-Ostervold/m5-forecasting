@@ -3,6 +3,8 @@
 ## Overview
 This project is a fun exploration I built to enhance my skills in data science, machine learning, and interactive dashboard development. I wanted to create something that demonstrates end-to-end analytics capabilities using publicly available retail data, while learning modern tools and techniques used in the industry.
 
+The requirements had to be split into two files since Streamlit gets angry when it has to install large packages like Tensorflow 😉
+
 ![Dashboard Preview](https://retailforecasting.streamlit.app/)
 
 ## Key Features

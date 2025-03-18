@@ -1,8 +1,6 @@
 import pandas as pd
 import numpy as np
 import joblib
-import tensorflow as tf
-from tensorflow import keras
 import streamlit as st
 
 @st.cache_data
@@ -23,8 +21,8 @@ def load_models():
     # Load XGBoost model
     xgb_model = joblib.load('models/xgb_sales_forecast_model.pkl')
     
-    # Load encoder model
-    encoder_model = tf.keras.models.load_model('models/customer_encoder_model.h5')
+    # For customer segmentation, load pre-computed embeddings instead of the model
+    customer_embeddings = joblib.load('models/customer_embeddings.pkl')
     
     # Load K-means model
     kmeans_model = joblib.load('models/customer_kmeans_model.pkl')
@@ -32,7 +30,7 @@ def load_models():
     # Load scaler
     scaler = joblib.load('models/rfm_scaler.pkl')
     
-    return xgb_model, encoder_model, kmeans_model, scaler
+    return xgb_model, customer_embeddings, kmeans_model, scaler
 
 def format_number(num):
     """Format numbers for display with K, M suffixes"""
@@ -47,17 +45,30 @@ def predict_sales(model, input_data):
     """Generate sales forecast using the trained model"""
     return model.predict(input_data)
 
-def get_customer_segment(encoder, kmeans, scaler, rfm_data):
-    """Predict customer segment using autoencoder and kmeans"""
+def get_customer_segment(embeddings_dict, kmeans, scaler, rfm_data):
+    """Predict customer segment using pre-computed embeddings and kmeans"""
+    # Ensure CustomerID column exists
+    if 'CustomerID' not in rfm_data.columns:
+        rfm_data['CustomerID'] = range(1, len(rfm_data) + 1)
+    
     # Scale the RFM data
     rfm_scaled = scaler.transform(rfm_data[['Recency', 'Frequency', 'MonetaryValue']])
     
-    # Get encoded features
-    encoded_features = encoder.predict(rfm_scaled)
+    # Look up customer embeddings from the pre-computed dictionary
+    # For new customers not in the dictionary, use kmeans directly on scaled data
+    embedded_data = []
+    for idx, row in rfm_data.iterrows():
+        customer_id = row['CustomerID']
+        if customer_id in embeddings_dict:
+            embedded_data.append(embeddings_dict[customer_id])
+        else:
+            # For new customers, use a fallback approach
+            embedded_data.append([rfm_scaled[idx][0], rfm_scaled[idx][1]])
+    
+    embedded_data = np.array(embedded_data)
     
     # Predict cluster
-    cluster = kmeans.predict(encoded_features)
-    
+    cluster = kmeans.predict(embedded_data)
     return cluster
 
 def create_radar_chart(df, categories, values, title):

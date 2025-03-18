@@ -7,3 +7,7 @@ seaborn==0.13.2
 scikit-learn==1.6.1
 joblib==1.3.2
 xgboost==2.1.1
+tensorflow==2.19.0
+tensorflow-io-gcs-filesystem==0.37.1
+umap-learn==0.5.7
+mlxtend==0.22.0
