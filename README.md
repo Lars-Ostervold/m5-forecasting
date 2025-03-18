@@ -53,7 +53,3 @@ This project was an amazing learning journey where I developed skills in:
 5. **Data storytelling** - Presenting complex analytical findings in a clear, actionable format
 6. **Machine learning deployment** - Taking models from notebooks to production-ready applications
 7. **Performance optimization** - Handling larger datasets efficiently using caching and parallel processing
-
-## Future Enhancements (Someday/Maybe)
-- Implement A/B testing simulation capabilities
-- Create other models to compare to XGBoost model (NN, regression)
