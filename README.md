@@ -1,4 +1,3 @@
-# ⚠️⚠️⚠️ Deployment is too big for the Streamlit community cloud. Will trim up a future version so it stops crashing :)
 # Retail Analytics Dashboard
 
 ## Overview
