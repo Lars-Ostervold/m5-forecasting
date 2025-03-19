@@ -266,147 +266,150 @@ fig = px.scatter(
 fig.update_xaxes(range=[0, min(100, product_clustered['AvgPrice'].max())])
 st.plotly_chart(fig, use_container_width=True)
 
-# Market Basket Analysis
-st.header("Market Basket Analysis")
-st.warning("⚠️ This analysis is not updating with the sliders currently. Might fix in future updates.")
-st.markdown("Discover which products are frequently purchased together")
+st.warning("⚠️ In the GitHub repo there is a 'Market Basket Analysis' commented out here, but it uses too much memory to deploy on the Streamlit Community Cloud.")
 
-col1, col2 = st.columns(2)
-with col1:
-    min_support = st.slider("Minimum Support", 0.01, 0.1, 0.02, step=0.01,
-                          help="Minimum frequency of itemsets (higher value = more common patterns)")
-with col2:
-    min_confidence = st.slider("Minimum Confidence", 0.1, 0.9, 0.5, step=0.1,
-                             help="Minimum confidence for rules (higher value = stronger relationships)")
 
-@st.cache_data
-def get_basket_rules(_min_support, _min_confidence):
-    # Prepare basket data
-    basket_sets = prepare_basket_data()
-    
-    # Run the Apriori algorithm
-    frequent_itemsets = apriori(basket_sets, min_support=_min_support, use_colnames=True)
-    
-    # Generate association rules
-    rules = association_rules(frequent_itemsets, metric="confidence", min_threshold=_min_confidence)
-    
-    # Add product descriptions
-    stock_to_desc = dict(zip(df['StockCode'], df['Description']))
-    
-    def get_product_names(itemset):
-        return ', '.join([stock_to_desc.get(item, item) for item in itemset])
-    
-    # Format rules for display
-    if len(rules) > 0:
-        rules['antecedents_str'] = rules['antecedents'].apply(lambda x: get_product_names(x))
-        rules['consequents_str'] = rules['consequents'].apply(lambda x: get_product_names(x))
-        return rules
-    else:
-        # Return empty dataframe with expected columns if no rules found
-        return pd.DataFrame(columns=['antecedents', 'consequents', 'support', 'confidence', 
-                                    'lift', 'antecedents_str', 'consequents_str'])
+# # Market Basket Analysis
+# st.header("Market Basket Analysis")
+# st.warning("⚠️ This analysis is not updating with the sliders currently. Might fix in future updates.")
+# st.markdown("Discover which products are frequently purchased together")
 
-try:
-    # Get market basket rules
-    basket_rules = get_basket_rules(min_support, min_confidence)
+# col1, col2 = st.columns(2)
+# with col1:
+#     min_support = st.slider("Minimum Support", 0.01, 0.1, 0.02, step=0.01,
+#                           help="Minimum frequency of itemsets (higher value = more common patterns)")
+# with col2:
+#     min_confidence = st.slider("Minimum Confidence", 0.1, 0.9, 0.5, step=0.1,
+#                              help="Minimum confidence for rules (higher value = stronger relationships)")
+
+# @st.cache_data
+# def get_basket_rules(_min_support, _min_confidence):
+#     # Prepare basket data
+#     basket_sets = prepare_basket_data()
     
-    if len(basket_rules) > 0:
-        # Display top association rules
-        st.subheader(f"Product Association Rules (Found: {len(basket_rules)})")
+#     # Run the Apriori algorithm
+#     frequent_itemsets = apriori(basket_sets, min_support=_min_support, use_colnames=True)
+    
+#     # Generate association rules
+#     rules = association_rules(frequent_itemsets, metric="confidence", min_threshold=_min_confidence)
+    
+#     # Add product descriptions
+#     stock_to_desc = dict(zip(df['StockCode'], df['Description']))
+    
+#     def get_product_names(itemset):
+#         return ', '.join([stock_to_desc.get(item, item) for item in itemset])
+    
+#     # Format rules for display
+#     if len(rules) > 0:
+#         rules['antecedents_str'] = rules['antecedents'].apply(lambda x: get_product_names(x))
+#         rules['consequents_str'] = rules['consequents'].apply(lambda x: get_product_names(x))
+#         return rules
+#     else:
+#         # Return empty dataframe with expected columns if no rules found
+#         return pd.DataFrame(columns=['antecedents', 'consequents', 'support', 'confidence', 
+#                                     'lift', 'antecedents_str', 'consequents_str'])
+
+# try:
+#     # Get market basket rules
+#     basket_rules = get_basket_rules(min_support, min_confidence)
+    
+#     if len(basket_rules) > 0:
+#         # Display top association rules
+#         st.subheader(f"Product Association Rules (Found: {len(basket_rules)})")
         
-        # Display table of top rules
-        st.dataframe(
-            basket_rules.sort_values('lift', ascending=False).head(10)[
-                ['antecedents_str', 'consequents_str', 'support', 'confidence', 'lift']
-            ].rename(columns={
-                'antecedents_str': 'Product(s) Purchased',
-                'consequents_str': 'Often Purchased With',
-                'support': 'Support',
-                'confidence': 'Confidence',
-                'lift': 'Lift'
-            }).style.format({
-                'Support': '{:.3f}',
-                'Confidence': '{:.3f}',
-                'Lift': '{:.2f}'
-            }),
-            hide_index=True,
-            use_container_width=True
-        )
+#         # Display table of top rules
+#         st.dataframe(
+#             basket_rules.sort_values('lift', ascending=False).head(10)[
+#                 ['antecedents_str', 'consequents_str', 'support', 'confidence', 'lift']
+#             ].rename(columns={
+#                 'antecedents_str': 'Product(s) Purchased',
+#                 'consequents_str': 'Often Purchased With',
+#                 'support': 'Support',
+#                 'confidence': 'Confidence',
+#                 'lift': 'Lift'
+#             }).style.format({
+#                 'Support': '{:.3f}',
+#                 'Confidence': '{:.3f}',
+#                 'Lift': '{:.2f}'
+#             }),
+#             hide_index=True,
+#             use_container_width=True
+#         )
         
-        # Visualize top rules
-        top_rules = basket_rules.sort_values('lift', ascending=False).head(10)
+#         # Visualize top rules
+#         top_rules = basket_rules.sort_values('lift', ascending=False).head(10)
         
-        fig = px.scatter(
-            top_rules,
-            x='support',
-            y='confidence',
-            size='lift',
-            hover_name='antecedents_str',
-            hover_data=['consequents_str', 'lift'],
-            title='Top Product Association Rules',
-            labels={
-                'support': 'Support (frequency of itemset)',
-                'confidence': 'Confidence (reliability of rule)',
-                'lift': 'Lift (strength of relationship)'
-            }
-        )
-        st.plotly_chart(fig, use_container_width=True)
+#         fig = px.scatter(
+#             top_rules,
+#             x='support',
+#             y='confidence',
+#             size='lift',
+#             hover_name='antecedents_str',
+#             hover_data=['consequents_str', 'lift'],
+#             title='Top Product Association Rules',
+#             labels={
+#                 'support': 'Support (frequency of itemset)',
+#                 'confidence': 'Confidence (reliability of rule)',
+#                 'lift': 'Lift (strength of relationship)'
+#             }
+#         )
+#         st.plotly_chart(fig, use_container_width=True)
         
-        # Network graph for rules
-        st.subheader("Product Association Network")
-        st.markdown("Network visualization of product relationships")
+#         # Network graph for rules
+#         st.subheader("Product Association Network")
+#         st.markdown("Network visualization of product relationships")
         
-        # Create network graph using NetworkX and Pyvis
-        import networkx as nx
-        from pyvis.network import Network
+#         # Create network graph using NetworkX and Pyvis
+#         import networkx as nx
+#         from pyvis.network import Network
         
-        # Create network from association rules
-        G = nx.DiGraph()
+#         # Create network from association rules
+#         G = nx.DiGraph()
         
-        # Add edges for top rules
-        for _, row in top_rules.iterrows():
-            source = row['antecedents_str']
-            target = row['consequents_str']
+#         # Add edges for top rules
+#         for _, row in top_rules.iterrows():
+#             source = row['antecedents_str']
+#             target = row['consequents_str']
             
-            # Add nodes
-            if source not in G:
-                G.add_node(source)
-            if target not in G:
-                G.add_node(target)
+#             # Add nodes
+#             if source not in G:
+#                 G.add_node(source)
+#             if target not in G:
+#                 G.add_node(target)
                 
-            # Add edge with lift as weight
-            G.add_edge(source, target, weight=row['lift'], title=f"Lift: {row['lift']:.2f}")
+#             # Add edge with lift as weight
+#             G.add_edge(source, target, weight=row['lift'], title=f"Lift: {row['lift']:.2f}")
         
-        # Convert to pyvis network for interactive visualization
-        net = Network(height="600px", width="100%", directed=True)
+#         # Convert to pyvis network for interactive visualization
+#         net = Network(height="600px", width="100%", directed=True)
         
-        # Copy nodes from networkx
-        for node in G.nodes():
-            # Truncate long labels
-            label = node[:30] + '...' if len(node) > 30 else node
-            net.add_node(node, label=label, title=node)
+#         # Copy nodes from networkx
+#         for node in G.nodes():
+#             # Truncate long labels
+#             label = node[:30] + '...' if len(node) > 30 else node
+#             net.add_node(node, label=label, title=node)
         
-        # Copy edges with weights
-        for edge in G.edges(data=True):
-            source, target, data = edge
-            weight = data.get('weight', 1.0)
-            title = data.get('title', '')
-            net.add_edge(source, target, value=weight, title=title)
+#         # Copy edges with weights
+#         for edge in G.edges(data=True):
+#             source, target, data = edge
+#             weight = data.get('weight', 1.0)
+#             title = data.get('title', '')
+#             net.add_edge(source, target, value=weight, title=title)
         
-        # Set physics options for better visualization
-        net.barnes_hut(gravity=-2000, central_gravity=0.3, spring_length=150)
+#         # Set physics options for better visualization
+#         net.barnes_hut(gravity=-2000, central_gravity=0.3, spring_length=150)
         
-        # Save and display
-        net.save_graph("product_network.html")
-        with open("product_network.html", "r", encoding="utf-8") as f:
-            html_string = f.read()
+#         # Save and display
+#         net.save_graph("product_network.html")
+#         with open("product_network.html", "r", encoding="utf-8") as f:
+#             html_string = f.read()
             
-        st.components.v1.html(html_string, height=600)
-    else:
-        st.info("No strong association rules found with the current settings. Try lowering the support or confidence thresholds.")
-except Exception as e:
-    st.error(f"Error in market basket analysis: {str(e)}")
-    st.info("Try adjusting the support and confidence parameters or refreshing the page.")
+#         st.components.v1.html(html_string, height=600)
+#     else:
+#         st.info("No strong association rules found with the current settings. Try lowering the support or confidence thresholds.")
+# except Exception as e:
+#     st.error(f"Error in market basket analysis: {str(e)}")
+#     st.info("Try adjusting the support and confidence parameters or refreshing the page.")
 
 # Footer
 st.markdown("---")
