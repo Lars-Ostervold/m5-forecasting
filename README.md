@@ -5,7 +5,7 @@ This project is a fun exploration I built to enhance my skills in data science, 
 
 The requirements had to be split into two files since Streamlit gets angry when it has to install large packages like Tensorflow 😉
 
-![Dashboard Preview](https://retailforecasting.streamlit.app/)
+[Dashboard Preview](https://retailforecasting.streamlit.app/)
 
 ## Key Features
 
